@@ -44,8 +44,7 @@ log( #{level := Level, msg := EventData, meta := Meta}
      , '@timestamp' => format_timestamp(Meta)
      , message => Msg
      },
-  ok = logger_logstash_udp:send(Host, Port, jsx:encode(Data)),
-  ok.
+  logger_logstash_udp:send(Host, Port, jsx:encode(Data)).
 
 -spec change_config(set | update, OldConfig, NewConfig) -> {ok, Config} | {error, term()} when
     OldConfig :: Config,
@@ -78,7 +77,7 @@ change_config(update, #{config := OldConfig}, #{config := UserConfig0} = Config)
 format_msg({string, Message}) -> {unicode:characters_to_binary(Message), []};
 format_msg({report, Report}) when is_map(Report) -> format_msg({report, maps:to_list(Report)});
 format_msg({report, Report}) when is_list(Report) ->
-  {proplists:get_value(msg, Report, null), safe_values(Report)};
+  {proplists:get_value(msg, Report, null), safe_fields(Report)};
 format_msg({Format, Params}) ->
   {unicode:characters_to_binary(io_lib:format(Format, Params)), []}.
 
@@ -87,10 +86,10 @@ format_timestamp(#{time := Ts}) ->
   list_to_binary(calendar:system_time_to_rfc3339(Ts, [{unit, microsecond}, {offset, "Z"}])).
 
 -spec safe_meta(logger:metadata()) -> [{binary() | atom(), jsx:json_term()}].
-safe_meta(Meta) -> safe_values(maps:to_list(Meta)).
+safe_meta(Meta) -> safe_fields(maps:to_list(Meta)).
 
--spec safe_values([{term(), term()}]) -> [{binary() | atom(), jsx:json_term()}].
-safe_values(Terms) -> lists:map(fun safe_field/1, Terms).
+-spec safe_fields([{term(), term()}]) -> [{binary() | atom(), jsx:json_term()}].
+safe_fields(Terms) -> lists:map(fun safe_field/1, Terms).
 
 -spec safe_field({term(), term()}) -> {atom() | binary(), jsx:json_term()}.
 safe_field({Key, Value}) when is_atom(Key); is_binary(Key) -> {Key, safe_value(Value)};
@@ -101,7 +100,7 @@ safe_value(Pid) when is_pid(Pid) -> list_to_binary(pid_to_list(Pid));
 safe_value(List) when is_list(List) ->
   case io_lib:char_list(List) of
     true -> list_to_binary(List);
-    false -> safe_values(List)
+    false -> lists:map(fun safe_value/1, List)
   end;
 safe_value(Val) when is_binary(Val);
                      is_atom(Val);

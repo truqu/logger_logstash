@@ -1,0 +1,10 @@
+{application, logger_logstash,
+ [{description, "Logstash handler for logger"},
+  {vsn, "0.1.0"},
+  {registered, [logger_logstash_udp]},
+  {applications, [kernel, stdlib, jsx]},
+  {mod, {logger_logstash_app, []}},
+
+  {licenses, ["https://github.truqu.com/truqu/logger_logstash/blob/develop/LICENSE"]},
+  {links, [{"GitHub", "https://github.com/truqu/logger_logstash"}]}
+ ]}.

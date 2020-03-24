@@ -21,7 +21,11 @@
 %%==============================================================================================
 
 -spec send(inet:hostname(), inet:port_number(), binary()) -> ok.
-send(Host, Port, Data) -> gen_server:call(?MODULE, {send, Host, Port, Data}).
+send(Host, Port, Data) ->
+  case whereis(?MODULE) of
+    undefined -> ok;
+    _ -> gen_server:call(?MODULE, {send, Host, Port, Data})
+  end.
 
 %%==============================================================================================
 %% Supervisor API

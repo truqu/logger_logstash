@@ -1,6 +1,6 @@
 {application, logger_logstash,
  [{description, "Logstash handler for logger"},
-  {vsn, "0.1.0"},
+  {vsn, "0.1.2"},
   {registered, [logger_logstash_udp]},
   {applications, [kernel, stdlib, jsx]},
   {mod, {logger_logstash_app, []}},

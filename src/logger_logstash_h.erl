@@ -34,6 +34,7 @@ adding_handler(HandlerConfig = #{config := UserConfig}) ->
   end.
 
 -spec log(logger:log_event(), logger:handler_config()) -> ok.
+log(#{level := info, meta := #{error_logger := #{type := progress}}}, _) -> ok;
 log( #{level := Level, msg := EventData, meta := Meta}
    , #{config := #{host := Host, port := Port, fields := DefaultFields}}
    ) ->

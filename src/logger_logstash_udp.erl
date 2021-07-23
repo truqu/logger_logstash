@@ -41,21 +41,36 @@ start_link() ->
 
 -spec init(term()) -> {ok, state()} | {stop, term()}.
 init(_) ->
-  case gen_udp:open(0, [binary, {active, false}]) of
-    {ok, _} = Res -> Res;
-    {error, E} -> {stop, E}
-  end.
+  {ok, connect()}.
 
 -spec handle_call(term(), term(), state()) -> {reply, ok, state()}.
 handle_call({send, Host, Port, Data}, _, Socket) ->
-  ok = gen_udp:send(Socket, Host, Port, Data),
-  {reply, ok, Socket}.
+  Socket0 = try_send(Socket, Host, Port, Data),
+  {reply, ok, Socket0}.
 
 -spec handle_cast(term(), state()) -> {noreply, state()}.
 handle_cast(_, State) -> {noreply, State}.
 
 -spec terminate(term(), state()) -> ok.
 terminate(_, Socket) -> gen_udp:close(Socket).
+
+%%==============================================================================================
+%% Internal functions
+%%==============================================================================================
+
+-spec connect() -> gen_udp:socket().
+connect() ->
+  {ok, Socket} = gen_udp:open(0, [binary, {active, false}]),
+  Socket.
+
+-spec try_send(Socket, Host :: term(), Port :: term(), Data :: term()) -> Socket when
+    Socket :: gen_udp:socket().
+try_send(Socket, Host, Port, Data) ->
+  case gen_udp:send(Socket, Host, Port, Data) of
+    ok -> Socket;
+    {error, closed} -> try_send(connect(), Host, Port, Data);
+    {error, _} -> Socket
+  end.
 
 %% Local variables:
 %% mode: erlang
